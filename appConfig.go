@@ -5,5 +5,5 @@ type appConfig struct {
 }
 
 type bot struct {
-	id string `json:"id" cfg:"id"`
+	token string `json:"token" cfg:"token"`
 }
