@@ -8,8 +8,14 @@ import (
 	"net/http"
 	"strconv"
 
-	wr "../models"
+	wr "WordsBot/models"
 )
+
+var botHost string
+
+func Configure(host string) {
+	botHost = host
+}
 
 //The below code deals with the process of sending a response message
 // to the user
@@ -53,7 +59,7 @@ func SendResponse(reqBody *wr.SendMessageReqBody) error {
 	}
 
 	// Send a post request with your token
-	res, err := http.Post("https://api.telegram.org/bot1769321616:AAED6eF_4VqvaCkGztZ8B9c5EO_ijlbzeAI/sendMessage", "application/json", bytes.NewBuffer(reqBytes))
+	res, err := http.Post(botHost+"/sendMessage", "application/json", bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return err
 	}

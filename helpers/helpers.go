@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	action "../actions"
-	wr "../models"
+	wr "WordsBot/models"
+
+	action "WordsBot/actions"
 )
 
 // Decode web request body

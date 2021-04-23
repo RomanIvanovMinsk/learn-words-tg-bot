@@ -1,7 +1,9 @@
 package main
 
 import (
+	"WordsBot/actions"
 	"WordsBot/api"
+	"WordsBot/config"
 	"context"
 	"fmt"
 	"log"
@@ -12,6 +14,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gosidekick/goconfig"
+	_ "github.com/gosidekick/goconfig/json"
 )
 
 // Handler This handler is called everytime telegram sends us a webhook event
@@ -27,16 +30,21 @@ import (
 
 // }
 
+var Config *config.AppConfig
+
 // FInally, the main funtion starts our server on port 3000
 func main() {
 
-	config := appConfig{}
+	Config = &config.AppConfig{}
 	goconfig.File = "config.json"
-	err := goconfig.Parse(&config)
+	err := goconfig.Parse(Config)
 	if err != nil {
 		log.Fatal(err.Error())
 		return
 	}
+
+	configureWebhooks(Config)
+	actions.Configure(config.GetBotHost(Config))
 
 	router := chi.NewRouter()
 	router.Mount("/", api.GetApiRouter())
@@ -61,4 +69,12 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	server.Shutdown(ctx)
+}
+
+func configureWebhooks(config *config.AppConfig) {
+	log.Println("Configuring webhook")
+	_, err := http.Get(config.Bot.Host + "/bot" + config.Bot.Token + "/setWebhook?url=" + config.Host + "/telegram")
+	if err != nil {
+		log.Fatal(err)
+	}
 }

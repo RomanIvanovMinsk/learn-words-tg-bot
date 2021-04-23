@@ -1,5 +1,7 @@
 {
     "Bot":{
-        "token" : ""
-    }
+        "Token" : "",
+        "Host" : "https://api.telegram.org"
+    },
+    "Host" : "https://49ea3728ada7.ngrok.io"
 }

@@ -11,6 +11,7 @@ github.com/gosidekick/goconfig v1.3.0 h1:2mVergguJxOjIHctDhPLGfvF93VicN8oWHog/9h
 github.com/gosidekick/goconfig v1.3.0/go.mod h1:uvpjHNfZ4Z8fM0CfGWZhQsizOP6QMOYqHfOo+stpXC4=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
+github.com/nuveo/log v0.0.0-20190430190217-44d02db6bdf8 h1:IoVlN33HZ55i+l/dTrlcQSv3cbK4YR1JOBMUhEsG75k=
 github.com/nuveo/log v0.0.0-20190430190217-44d02db6bdf8/go.mod h1:3hnKPKp4eM6b2+y19LM7XRFDT5hN1gV7LwijyQqqeNc=
 github.com/pelletier/go-toml v1.8.1/go.mod h1:T2/BmBdy8dvIRq1a/8aqjN41wvWlN4lrapLU/GW4pbc=
 github.com/smartystreets/assertions v0.0.0-20180927180507-b2de0cb4f26d/go.mod h1:OnSkiWE9lh6wB0YB77sQom3nweQdgAjqCqsofrRNTgc=
