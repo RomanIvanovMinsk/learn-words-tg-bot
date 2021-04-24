@@ -1,33 +1,67 @@
 package main
 
 import (
+	"WordsBot/actions"
+	"WordsBot/api"
+	"WordsBot/config"
+	"context"
 	"fmt"
+	"log"
 	"net/http"
-	"strings"
+	"os"
+	"os/signal"
+	"time"
 
-	helper "./helpers"
-	wr "./models"
-	clienthelper "./clienthelper"
-	
+	"github.com/go-chi/chi/v5"
+	"github.com/gosidekick/goconfig"
+	_ "github.com/gosidekick/goconfig/json"
 )
 
-// Handler This handler is called everytime telegram sends us a webhook event
-func Handler(res http.ResponseWriter, req *http.Request) {
-	if strings.Contains(strings.ToLower(req.URL.Path), "uploadlist") {
-		body := &wr.WordsList{}
-		helper.DecodeListForSave(req, body);
-		fmt.Println(body);
-		clienthelper.UploadList(body, res);
-	}
-
-	fmt.Println("Start handler")
-	body := &wr.WebhookReqBody{}
-	helper.DecodeRequestBody(req, body)
-	helper.SelectAction(body)
-
-}
+var Config *config.AppConfig
 
 // Finally, the main function starts our server on port 3000
 func main() {
-	http.ListenAndServe(":88", http.HandlerFunc(Handler))
+
+	Config = &config.AppConfig{}
+	goconfig.File = "config.json"
+	err := goconfig.Parse(Config)
+	if err != nil {
+		log.Fatal(err.Error())
+		return
+	}
+
+	configureWebhooks(Config)
+	actions.Configure(config.GetBotHost(Config))
+
+	router := chi.NewRouter()
+	router.Mount("/", api.GetApiRouter())
+
+	server := http.Server{
+		Addr:    ":8821",
+		Handler: router,
+	}
+
+	go func() {
+		fmt.Println("Server is listening...")
+		err := server.ListenAndServe()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	<-c
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	server.Shutdown(ctx)
+}
+
+func configureWebhooks(config *config.AppConfig) {
+	log.Println("Configuring webhook")
+	_, err := http.Get(config.Bot.Host + "/bot" + config.Bot.Token + "/setWebhook?url=" + config.Host + "/telegram")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
