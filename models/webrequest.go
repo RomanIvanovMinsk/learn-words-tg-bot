@@ -29,3 +29,9 @@ type Word struct {
 	Lang   string
 	Usages []Usage
 }
+
+
+type WordsList struct {
+	ChatID int64
+	Words []Word
+}

@@ -12,13 +12,15 @@ import (
 
 // Decode web request body
 func DecodeRequestBody(req *http.Request, body *wr.WebhookReqBody) {
-	// First, decode the JSON response body
-
 	if err := json.NewDecoder(req.Body).Decode(body); err != nil {
 		fmt.Println("could not decode request body", err)
-	}
+	}	
+}
 
-	fmt.Println(body.Message.Text)
+func DecodeListForSave(req *http.Request, body *wr.WordsList){
+	if err := json.NewDecoder(req.Body).Decode(body); err != nil {
+		fmt.Println("could not decode request body", err)
+	}	
 }
 
 func SelectAction(body *wr.WebhookReqBody) {

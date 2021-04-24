@@ -7,12 +7,17 @@ import (
 
 	helper "./helpers"
 	wr "./models"
+	clienthelper "./clienthelper"
+	
 )
 
 // Handler This handler is called everytime telegram sends us a webhook event
 func Handler(res http.ResponseWriter, req *http.Request) {
-	if strings.Contains(strings.ToLower(req.Url), "uploadlist") {
-		//actions.UploadList(req.Body)
+	if strings.Contains(strings.ToLower(req.URL.Path), "uploadlist") {
+		body := &wr.WordsList{}
+		helper.DecodeListForSave(req, body);
+		fmt.Println(body);
+		clienthelper.UploadList(body, res);
 	}
 
 	fmt.Println("Start handler")
@@ -22,7 +27,7 @@ func Handler(res http.ResponseWriter, req *http.Request) {
 
 }
 
-// FInally, the main funtion starts our server on port 3000
+// Finally, the main function starts our server on port 3000
 func main() {
 	http.ListenAndServe(":88", http.HandlerFunc(Handler))
 }
