@@ -10,19 +10,38 @@ alter function dbo.GetWordId(
     @Lang nvarchar(6)
 )
     returns uniqueidentifier
-        as
-        begin
-            DECLARE @id uniqueidentifier
+as
+begin
+    DECLARE @id uniqueidentifier
 
 
-                select top(1) @id = Id
-                from Words
-                where Stem = @Stem
-                  and Lang = @Lang
-                  and UserId = @UserId
+    select top (1) @id = Id
+    from Words
+    where Stem = @Stem
+      and Lang = @Lang
+      and UserId = @UserId
 
-            return @id;
-        end
+    return @id;
+end
+go
+
+create or
+alter function dbo.GetWordUsageId(
+    @WordId uniqueidentifier,
+    @Usage nvarchar(500)
+)
+    returns uniqueidentifier
+as
+begin
+    declare @id uniqueidentifier
+
+    select top (1) @id = Id
+    from dbo.Usage
+    where WordId = @wordId
+      and Text = @Usage
+
+    return @id;
+end
 go
 
 create or
@@ -34,12 +53,14 @@ begin
     values (@TelegramId)
 end
 go
-create or alter procedure GetUserIdByTelegramId @TelegramId nvarchar(30)
+create or
+alter procedure GetUserIdByTelegramId @TelegramId nvarchar(30)
 as
-    begin
-        select UserId from Profile
-        where UserTelegramId = @TelegramId
-    end
+begin
+    select UserId
+    from Profile
+    where UserTelegramId = @TelegramId
+end
 go
 create or
 alter procedure AddWord @UserId uniqueidentifier,
@@ -54,11 +75,16 @@ begin
     if @wordId is null
         begin
             insert into Words(UserId, Word, Stem, Lang)
-            values (@UserId, @Word, @Stem, @Lang)
+            values (@UserId, @Word, @Stem, @Lang);
+            exec @wordId = dbo.GetWordId @UserId, @Stem, @Lang;
         end
 
-    insert into Usage(WordId, Text)
-    values (@wordId, @Usage)
+    if @Usage is not null
+        begin
+            if dbo.GetWordUsageId(@wordId, @Usage) is null
+                insert into Usage(WordId, Text)
+                values (@wordId, @Usage)
+        end
 end
 
 go

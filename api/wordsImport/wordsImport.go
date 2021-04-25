@@ -1,6 +1,7 @@
 package wordsImport
 
 import (
+	"WordsBot/services/wordsManager"
 	"fmt"
 	"net/http"
 
@@ -8,18 +9,27 @@ import (
 	"github.com/go-chi/render"
 
 	clienthelper "WordsBot/clienthelper"
-	helper "WordsBot/helpers"
 	wr "WordsBot/models"
 )
 
 func RenderYearChart(w http.ResponseWriter, r *http.Request) {
-
+	words := make([]wr.Word, 0, 1)
+	words = append(words, wr.Word{
+		Word:   "Good",
+		Stem:   "good",
+		Lang:   "en",
+		Usages: []wr.Usage{{Usage: "that is Good 1"}},
+	})
+	wordsManager.AddWordsList("729006239", words)
 	render.PlainText(w, r, "I'm wordImport route")
 }
 
 func importWordsList(w http.ResponseWriter, req *http.Request) {
 	body := &wr.WordsList{}
-	helper.DecodeListForSave(req, body)
+	err := render.DecodeJSON(req.Body, body)
+	if err != nil {
+		fmt.Println("could not decode request body", err)
+	}
 	fmt.Println(body)
 	clienthelper.UploadList(body, w)
 }
