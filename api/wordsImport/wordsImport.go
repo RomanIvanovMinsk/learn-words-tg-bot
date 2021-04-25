@@ -12,7 +12,7 @@ import (
 	wr "WordsBot/models"
 )
 
-func RenderYearChart(w http.ResponseWriter, r *http.Request) {
+func GetImport(w http.ResponseWriter, r *http.Request) {
 	words := make([]wr.Word, 0, 1)
 	words = append(words, wr.Word{
 		Word:   "Good",
@@ -37,7 +37,7 @@ func importWordsList(w http.ResponseWriter, req *http.Request) {
 func NewRouter() http.Handler {
 	r := chi.NewRouter()
 
-	r.Get("/", RenderYearChart)
+	r.Get("/", GetImport)
 	r.Post("/importList", importWordsList)
 
 	return r
