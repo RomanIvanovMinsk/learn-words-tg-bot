@@ -70,3 +70,6 @@ func SendResponse(reqBody *wr.SendMessageReqBody) error {
 	return nil
 }
 
+func ProcessAnswer(chatID int64, callback *wr.Callback) {
+
+}

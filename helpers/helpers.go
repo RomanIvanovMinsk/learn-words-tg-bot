@@ -60,4 +60,12 @@ func SelectAction(body *wr.WebhookReqBody) {
 		}
 		return
 	}
+	if body.Callback.Info != "" {
+		fmt.Println("Start process user answer")
+		if err := action.ProcessAnswer(body.Message.Chat.ID, body.Callback); err != nil {
+			fmt.Println("error in sending reply:", err)
+			return
+		}
+	}
+
 }
