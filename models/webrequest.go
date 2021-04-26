@@ -17,12 +17,10 @@ type SendMessageReqBody struct {
 	Text   string `json:"text"`
 }
 
-// Usage
 type Usage struct {
 	Usage string
 }
 
-// Word
 type Word struct {
 	Word   string
 	Stem   string
@@ -30,8 +28,7 @@ type Word struct {
 	Usages []Usage
 }
 
-
 type WordsList struct {
-	ChatID int64
-	Words []Word
+	TelegramUserId string
+	Words          []Word
 }

@@ -1,4 +1,10 @@
 {
+    "SQL": {
+        "host": "localhost:1533",
+        "database": "WordsBot",
+        "user": "sa",
+        "password": "Pass@word"
+    },
     "Bot":{
         "Token" : "",
         "Host" : "https://api.telegram.org"
