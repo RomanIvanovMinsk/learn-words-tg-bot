@@ -35,9 +35,14 @@ type Callback struct {
 // of the send message request
 // https://core.telegram.org/bots/api#sendmessage
 type SendMessageReqBody struct {
-	ChatID         int64                  `json:"chat_id"`
-	Text           string                 `json:"text"`
-	InlineKeyboard []InlineKeyboardButton `json:"inline_keyboard"`
+	ChatID int64  `json:"chat_id"`
+	Text   string `json:"text"`
+}
+
+type SendMessageReqBodyReply struct {
+	ChatID int64                `json:"chat_id"`
+	Text   string               `json:"text"`
+	Reply  InlineKeyboardMarkup `json:"reply_markup"`
 }
 
 // Keyboard button
@@ -46,6 +51,11 @@ type InlineKeyboardButton struct {
 	CallbackData string `json:"callback_data"`
 }
 
+type InlineKeyboardMarkup struct {
+	Keyboard [1][2]InlineKeyboardButton `json:"inline_keyboard"`
+}
+
+// Usage
 type Usage struct {
 	Usage string
 }

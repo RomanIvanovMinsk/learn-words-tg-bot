@@ -60,12 +60,29 @@ func SelectAction(body *wr.WebhookReqBody) {
 		}
 		return
 	}
-	if body.Callback.Info != "" {
-		fmt.Println("Start process user answer")
-		if err := action.ProcessAnswer(body.Message.Chat.ID, body.Callback); err != nil {
+	if strings.Contains(strings.ToLower(body.Message.Text), "givemetheword") {
+		chatId := body.Message.Chat.ID
+		if err := action.SendQuestion(chatId, GetTheWord(chatId)); err != nil {
 			fmt.Println("error in sending reply:", err)
 			return
 		}
 	}
 
+	if body.Callback.Info != "" {
+		fmt.Println("Start process user answer")
+		if err := action.ProcessAnswer(body.Message.Chat.ID, body); err != nil {
+			fmt.Println("error in sending reply:", err)
+			return
+		}
+	}
+
+}
+
+func GetTheWord(chatID int64) *wr.Word {
+	word := &wr.Word{}
+	word.Lang = "en"
+	word.Stem = "Test"
+	word.Word = "Tests"
+
+	return word
 }
