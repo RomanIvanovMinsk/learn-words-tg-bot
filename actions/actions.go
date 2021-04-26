@@ -70,3 +70,57 @@ func SendResponse(reqBody *wr.SendMessageReqBody) error {
 	return nil
 }
 
+func SendResponseWithReply(reqBody *wr.SendMessageReqBodyReply) error {
+	// Create the JSON body from the struct
+	reqBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return err
+	}
+
+	// Send a post request with your token
+	res, err := http.Post(botHost+"/sendMessage", "application/json", bytes.NewBuffer(reqBytes))
+	if err != nil {
+		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		return errors.New("unexpected status" + res.Status)
+	}
+
+	return nil
+}
+
+func SendQuestion(chatID int64, word *wr.Word) error {
+	var buttons [1][2]wr.InlineKeyboardButton
+	buttons[0][0] = *SetUpButton(word.Stem, "I remember the word")
+	buttons[0][1] = *SetUpButton(word.Stem, "I do not remember word")
+
+	keyboard := &wr.InlineKeyboardMarkup{}
+	keyboard.Keyboard = buttons
+
+	reqBody := &wr.SendMessageReqBodyReply{
+		ChatID: chatID,
+		Text:   "Please select one answer",
+		Reply:  *keyboard,
+	}
+
+	err := SendResponseWithReply(reqBody)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func ProcessAnswer(chatID int64, callback *wr.WebhookReqBody) error {
+	fmt.Printf("We get the answer and %d answer is %s", chatID, callback.Callback.Info)
+	return nil
+}
+
+func SetUpButton(word string, comment string) *wr.InlineKeyboardButton {
+	button := &wr.InlineKeyboardButton{}
+	button.Text = comment
+	button.CallbackData = word
+
+	return button
+}

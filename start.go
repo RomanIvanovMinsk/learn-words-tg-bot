@@ -4,14 +4,17 @@ import (
 	"WordsBot/actions"
 	"WordsBot/api"
 	"WordsBot/config"
+	"WordsBot/services/sqlService"
 	"context"
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"time"
 
+	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/go-chi/chi/v5"
 	"github.com/gosidekick/goconfig"
 	_ "github.com/gosidekick/goconfig/json"
@@ -29,6 +32,8 @@ func main() {
 		log.Fatal(err.Error())
 		return
 	}
+
+	initDb(Config.Sql)
 
 	configureWebhooks(Config)
 	actions.Configure(config.GetBotHost(Config))
@@ -49,6 +54,10 @@ func main() {
 		}
 	}()
 
+	gracefulShutDown(server)
+}
+
+func gracefulShutDown(server http.Server) {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	<-c
@@ -63,5 +72,21 @@ func configureWebhooks(config *config.AppConfig) {
 	_, err := http.Get(config.Bot.Host + "/bot" + config.Bot.Token + "/setWebhook?url=" + config.Host + "/telegram")
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func initDb(config config.SqlConfig) {
+	query := url.Values{}
+	query.Add("database", config.Database)
+	u := &url.URL{
+		Scheme:   "sqlserver",
+		User:     url.UserPassword(config.User, config.Password),
+		Host:     config.Host,
+		RawQuery: query.Encode(),
+	}
+	err := sqlService.OpenConnection(u)
+
+	if err != nil {
+		fmt.Println(err.Error())
 	}
 }

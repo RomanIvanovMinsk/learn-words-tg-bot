@@ -1,9 +1,11 @@
 package helpers
 
 import (
+	"WordsBot/services/sqlService"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	wr "WordsBot/models"
@@ -15,19 +17,20 @@ import (
 func DecodeRequestBody(req *http.Request, body *wr.WebhookReqBody) {
 	if err := json.NewDecoder(req.Body).Decode(body); err != nil {
 		fmt.Println("could not decode request body", err)
-	}	
+	}
 }
 
-func DecodeListForSave(req *http.Request, body *wr.WordsList){
+func DecodeListForSave(req *http.Request, body *wr.WordsList) {
 	if err := json.NewDecoder(req.Body).Decode(body); err != nil {
 		fmt.Println("could not decode request body", err)
-	}	
+	}
 }
 
 func SelectAction(body *wr.WebhookReqBody) {
 	// Check if the message contains the word "marco"
 	// if not, return without doing anything
-	if strings.Contains(strings.ToLower(body.Message.Text), "marco") {
+	command := strings.ToLower(body.Message.Text)
+	if strings.Contains(command, "marco") {
 		// If the text contains marco, call the `sayPolo` function, which
 		// is defined below
 		if err := action.SayPolo(body.Message.Chat.ID); err != nil {
@@ -39,11 +42,47 @@ func SelectAction(body *wr.WebhookReqBody) {
 		fmt.Println("reply sent")
 	}
 
-	if strings.Contains(strings.ToLower(body.Message.Text), "myid") {
+	if strings.Contains(command, "myid") {
 		fmt.Println("Start my id")
 		if err := action.GetMyId(body.Message.Chat.ID); err != nil {
 			fmt.Println("error in sending reply:", err)
 			return
 		}
 	}
+
+	if command == "/start" {
+		fmt.Println("Start creating profile")
+		userId, err := sqlService.CreateProfile(strconv.FormatInt(body.Message.Chat.ID, 10))
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			fmt.Printf("UserId %s\n", userId)
+		}
+		return
+	}
+	if strings.Contains(strings.ToLower(body.Message.Text), "givemetheword") {
+		chatId := body.Message.Chat.ID
+		if err := action.SendQuestion(chatId, GetTheWord(chatId)); err != nil {
+			fmt.Println("error in sending reply:", err)
+			return
+		}
+	}
+
+	if body.Callback.Info != "" {
+		fmt.Println("Start process user answer")
+		if err := action.ProcessAnswer(body.Message.Chat.ID, body); err != nil {
+			fmt.Println("error in sending reply:", err)
+			return
+		}
+	}
+
+}
+
+func GetTheWord(chatID int64) *wr.Word {
+	word := &wr.Word{}
+	word.Lang = "en"
+	word.Stem = "Test"
+	word.Word = "Tests"
+
+	return word
 }
