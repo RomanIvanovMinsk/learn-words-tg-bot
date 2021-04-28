@@ -1,6 +1,7 @@
 package api
 
 import (
+	"WordsBot/api/seed"
 	"WordsBot/api/telegram"
 	"WordsBot/api/wordsImport"
 	"net/http"
@@ -13,6 +14,7 @@ func GetApiRouter() http.Handler {
 
 	r.Mount("/telegram", telegram.NewRouter())
 	r.Mount("/wordsImport", wordsImport.NewRouter())
+	r.Mount("/seed", seed.NewRouter())
 
 	return r
 }

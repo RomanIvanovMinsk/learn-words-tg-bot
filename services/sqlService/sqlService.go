@@ -13,6 +13,12 @@ import (
 
 var db *sqlx.DB
 
+type DbWord struct {
+	Word string `db:"Word"`
+	Stem string `db:"Stem"`
+	Lang string `db:"Lang"`
+}
+
 func OpenConnection(url *url.URL) error {
 	var err error
 
@@ -97,8 +103,7 @@ func AddWord(userId string, word models.Word) error {
 		log.Println(err.Error())
 		return err
 	}
-	preparedUserId := mssql.UniqueIdentifier{}
-	preparedUserId.Scan(userId)
+	preparedUserId := getUserId(userId)
 	tx := db.MustBegin()
 	stmt, err := tx.Preparex(`exec dbo.AddWord @p1, @p2, @p3, @p4, @p5`)
 	if err != nil {
@@ -115,3 +120,42 @@ func AddWord(userId string, word models.Word) error {
 
 	return nil
 }
+
+func getUserId(userId string) mssql.UniqueIdentifier {
+	preparedUserId := mssql.UniqueIdentifier{}
+	preparedUserId.Scan(userId)
+	return preparedUserId
+}
+
+func Queue() error {
+	ctx := context.Background()
+	err := db.PingContext(ctx)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	_, err = db.Exec(`exec dbo.QueueWords`)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	return nil
+}
+
+//func GetIntervalWords(userId string) (DbWord,error) {
+//	ctx := context.Background()
+//	err := db.PingContext(ctx)
+//	if err != nil {
+//		log.Println(err.Error())
+//		return (nil,err)
+//	}
+//	preparedUserId := getUserId(userId)
+//
+//	result, err := db.Queryx(`exec dbo.GetIntervalWords @p1`, preparedUserId)
+//	if err != nil {
+//		log.Println(err.Error())
+//		return err
+//	}
+//	return nil
+//}
