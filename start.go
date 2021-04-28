@@ -7,6 +7,8 @@ import (
 	"WordsBot/services/sqlService"
 	"context"
 	"fmt"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/render"
 	"log"
 	"net/http"
 	"net/url"
@@ -16,6 +18,7 @@ import (
 
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/go-chi/httplog"
 	"github.com/gosidekick/goconfig"
 	_ "github.com/gosidekick/goconfig/json"
 )
@@ -39,7 +42,13 @@ func main() {
 	actions.Configure(config.GetBotHost(Config))
 
 	router := chi.NewRouter()
-	router.Mount("/", api.GetApiRouter())
+	router.Use(render.SetContentType(render.ContentTypeJSON),
+		middleware.DefaultLogger,
+		middleware.RequestID,
+		middleware.Recoverer,
+		middleware.CleanPath)
+
+	router.Mount("/api/", api.GetApiRouter())
 
 	server := http.Server{
 		Addr:    ":8821",
@@ -69,7 +78,7 @@ func gracefulShutDown(server http.Server) {
 
 func configureWebhooks(config *config.AppConfig) {
 	log.Println("Configuring webhook")
-	_, err := http.Get(config.Bot.Host + "/bot" + config.Bot.Token + "/setWebhook?url=" + config.Host + "/telegram")
+	_, err := http.Get(config.Bot.Host + "/bot" + config.Bot.Token + "/setWebhook?url=" + config.Host + "/api/telegram")
 	if err != nil {
 		log.Fatal(err)
 	}

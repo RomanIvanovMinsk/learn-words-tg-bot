@@ -30,15 +30,15 @@ func importWordsList(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		fmt.Println("could not decode request body", err)
 	}
-	fmt.Println(body)
-	clienthelper.UploadList(body, w)
+
+	clienthelper.UploadList(body, w, req)
 }
 
 func NewRouter() http.Handler {
 	r := chi.NewRouter()
 
 	r.Get("/", GetImport)
-	r.Post("/importList", importWordsList)
+	r.Post("/list", importWordsList)
 
 	return r
 }
