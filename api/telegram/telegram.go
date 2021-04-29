@@ -1,12 +1,11 @@
 package telegram
 
 import (
+	"WordsBot/models/telegram"
 	"fmt"
 	"net/http"
 
 	"WordsBot/helpers"
-	"WordsBot/models"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
@@ -17,7 +16,7 @@ func GetRoot(w http.ResponseWriter, r *http.Request) {
 
 func PostWebhook(w http.ResponseWriter, r *http.Request) {
 
-	body := &models.WebhookReqBody{}
+	body := &telegram.WebhookReqBody{}
 	err := render.DecodeJSON(r.Body, body)
 	if err != nil {
 		fmt.Println("could not decode request body", err)

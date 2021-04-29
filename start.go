@@ -40,6 +40,16 @@ func main() {
 
 	configureWebhooks(Config)
 	actions.Configure(config.GetBotHost(Config))
+	//err = actions.SetMyCommands(&telegram.SetMyCommandsRequest{
+	//	Commands: []telegram.BotCommand{
+	//		{Command: "/start"},
+	//		{Command: "/myid"},
+	//		{Command: "/givemetheword"},
+	//	},
+	//})
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
 
 	router := chi.NewRouter()
 	router.Use(render.SetContentType(render.ContentTypeJSON),
