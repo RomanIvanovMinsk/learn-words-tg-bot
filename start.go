@@ -4,6 +4,7 @@ import (
 	"WordsBot/actions"
 	"WordsBot/api"
 	"WordsBot/config"
+	"WordsBot/models/telegram"
 	"WordsBot/services/sqlService"
 	"context"
 	"fmt"
@@ -40,16 +41,16 @@ func main() {
 
 	configureWebhooks(Config)
 	actions.Configure(config.GetBotHost(Config))
-	//err = actions.SetMyCommands(&telegram.SetMyCommandsRequest{
-	//	Commands: []telegram.BotCommand{
-	//		{Command: "/start"},
-	//		{Command: "/myid"},
-	//		{Command: "/givemetheword"},
-	//	},
-	//})
-	//if err != nil {
-	//	log.Fatal(err)
-	//}
+	err = actions.SetMyCommands(&telegram.SetMyCommandsRequest{
+		Commands: []telegram.BotCommand{
+			{Command: "/start", Description: "create user profile"},
+			{Command: "/myid", Description: "return user id"},
+			{Command: "/givemetheword", Description: "get next word"},
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	router := chi.NewRouter()
 	router.Use(render.SetContentType(render.ContentTypeJSON),
