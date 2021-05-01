@@ -1,6 +1,7 @@
 package actions
 
 import (
+	wr "WordsBot/models"
 	"WordsBot/models/telegram"
 	"WordsBot/services/wordsManager"
 	"bytes"
@@ -8,10 +9,11 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
-
-	wr "WordsBot/models"
+	"time"
 )
 
 var botHost string
@@ -55,41 +57,11 @@ func GetMyId(chatID int64) error {
 }
 
 func SendResponse(reqBody *telegram.SendMessageReqBody) error {
-	// Create the JSON body from the struct
-	reqBytes, err := json.Marshal(reqBody)
-	if err != nil {
-		return err
-	}
-
-	// Send a post request with your token
-	res, err := http.Post(botHost+"/sendMessage", "application/json", bytes.NewBuffer(reqBytes))
-	if err != nil {
-		return err
-	}
-	if res.StatusCode != http.StatusOK {
-		return errors.New("unexpected status" + res.Status)
-	}
-
-	return nil
+	return post("/sendMessage", reqBody)
 }
 
 func SendResponseWithReply(reqBody *telegram.SendMessageReqBodyReply) error {
-	// Create the JSON body from the struct
-	reqBytes, err := json.Marshal(reqBody)
-	if err != nil {
-		return err
-	}
-
-	// Send a post request with your token
-	res, err := http.Post(botHost+"/sendMessage", "application/json", bytes.NewBuffer(reqBytes))
-	if err != nil {
-		return err
-	}
-	if res.StatusCode != http.StatusOK {
-		return errors.New("unexpected status" + res.Status)
-	}
-
-	return nil
+	return post("/sendMessage", reqBody)
 }
 
 func SendQuestion(chatID int64, word *wr.Word) error {
@@ -134,61 +106,32 @@ func SetUpButton(word wr.Answer, comment string) *telegram.InlineKeyboardButton 
 }
 
 func EditMessageReplyMarkup(reqBody *telegram.EditMessageReplyMarkupRequest) error {
-
-	reqBytes, err := json.Marshal(reqBody)
-	if err != nil {
-		return err
-	}
-
-	res, err := http.Post(botHost+"/editMessageReplyMarkup", "application/json", bytes.NewBuffer(reqBytes))
-	if err != nil {
-		return err
-	}
-	if res.StatusCode != http.StatusOK {
-		var b []byte
-		res.Body.Read(b)
-		fmt.Println(string(b))
-		return errors.New("unexpected status" + res.Status)
-	}
-
-	return nil
+	return post("/editMessageReplyMarkup", reqBody)
 }
 
 func AnswerCallbackQuery(reqBody *telegram.AnswerCallbackQuery) error {
-
-	reqBytes, err := json.Marshal(reqBody)
-	if err != nil {
-		return err
-	}
-
-	res, err := http.Post(botHost+"/answerCallbackQuery", "application/json", bytes.NewBuffer(reqBytes))
-	if err != nil {
-		return err
-	}
-	if res.StatusCode != http.StatusOK {
-		var b []byte
-		res.Body.Read(b)
-		fmt.Println(string(b))
-		return errors.New("unexpected status" + res.Status)
-	}
-
-	return nil
+	return post("/answerCallbackQuery", reqBody)
 }
 
 func SetMyCommands(reqBody *telegram.SetMyCommandsRequest) error {
+	return post("/setMyCommands", reqBody)
+}
 
-	reqBytes, err := json.Marshal(reqBody)
+func post(url string, payload interface{}) error {
+	reqBytes, err := json.Marshal(payload)
 	if err != nil {
 		return err
 	}
 
-	res, err := http.Post(botHost+"/setMyCommands", "application/json", bytes.NewBuffer(reqBytes))
+	client := &http.Client{
+		Transport: LoggingRoundTripper{http.DefaultTransport},
+		Timeout:   30 * time.Second,
+	}
+	res, err := client.Post(botHost+url, "application/json", bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return err
 	}
 	if res.StatusCode != http.StatusOK {
-		var b []byte
-		res.Body.Read(b)
 
 		body, _ := io.ReadAll(res.Body)
 
@@ -197,4 +140,27 @@ func SetMyCommands(reqBody *telegram.SetMyCommandsRequest) error {
 	}
 
 	return nil
+}
+
+type LoggingRoundTripper struct {
+	Proxied http.RoundTripper
+}
+
+func (lrt LoggingRoundTripper) RoundTrip(req *http.Request) (res *http.Response, e error) {
+	fmt.Printf("Sending request to %v\n", req.URL)
+
+	res, e = lrt.Proxied.RoundTrip(req)
+
+	// Handle the result.
+	if e != nil {
+		fmt.Printf("Error: %v", e)
+	} else if res.StatusCode >= 400 && res.StatusCode <= 500 {
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			log.Fatalln(err)
+		}
+		fmt.Printf("Received %s error\n", string(body))
+	}
+
+	return
 }
