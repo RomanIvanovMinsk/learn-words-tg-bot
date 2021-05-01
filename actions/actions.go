@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -188,7 +189,10 @@ func SetMyCommands(reqBody *telegram.SetMyCommandsRequest) error {
 	if res.StatusCode != http.StatusOK {
 		var b []byte
 		res.Body.Read(b)
-		fmt.Println(string(b))
+
+		body, _ := io.ReadAll(res.Body)
+
+		fmt.Println(string(body))
 		return errors.New("unexpected status" + res.Status)
 	}
 

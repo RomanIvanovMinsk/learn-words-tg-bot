@@ -13,10 +13,17 @@ type User struct {
 }
 
 type Message struct {
-	MessageId int64  `json:"message_id"`
-	Text      string `json:"text"`
-	From      User   `json:"from"`
-	Chat      Chat   `json:"chat"`
+	MessageId int64           `json:"message_id"`
+	Text      string          `json:"text"`
+	From      User            `json:"from"`
+	Chat      Chat            `json:"chat"`
+	Entities  []MessageEntity `json:"entities"`
+}
+
+type MessageEntity struct {
+	Type   string `json:"type"`
+	Offset int    `json:"offset"`
+	Length int    `json:"length"`
 }
 
 type Chat struct {
