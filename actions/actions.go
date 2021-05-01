@@ -1,6 +1,8 @@
 package actions
 
 import (
+	"WordsBot/models/telegram"
+	"WordsBot/services/wordsManager"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -21,7 +23,7 @@ func Configure(host string) {
 // to the user
 func SayPolo(chatID int64) error {
 	// Create the request body struct
-	reqBody := &wr.SendMessageReqBody{
+	reqBody := &telegram.SendMessageReqBody{
 		ChatID: chatID,
 		Text:   "Polo!!",
 	}
@@ -37,7 +39,7 @@ func SayPolo(chatID int64) error {
 // get userId and return it
 func GetMyId(chatID int64) error {
 	fmt.Println("chat id %d", strconv.FormatInt(chatID, 10))
-	reqBody := &wr.SendMessageReqBody{
+	reqBody := &telegram.SendMessageReqBody{
 		ChatID: chatID,
 		Text:   strconv.FormatInt(chatID, 10),
 	}
@@ -51,7 +53,7 @@ func GetMyId(chatID int64) error {
 	return nil
 }
 
-func SendResponse(reqBody *wr.SendMessageReqBody) error {
+func SendResponse(reqBody *telegram.SendMessageReqBody) error {
 	// Create the JSON body from the struct
 	reqBytes, err := json.Marshal(reqBody)
 	if err != nil {
@@ -70,7 +72,7 @@ func SendResponse(reqBody *wr.SendMessageReqBody) error {
 	return nil
 }
 
-func SendResponseWithReply(reqBody *wr.SendMessageReqBodyReply) error {
+func SendResponseWithReply(reqBody *telegram.SendMessageReqBodyReply) error {
 	// Create the JSON body from the struct
 	reqBytes, err := json.Marshal(reqBody)
 	if err != nil {
@@ -90,17 +92,18 @@ func SendResponseWithReply(reqBody *wr.SendMessageReqBodyReply) error {
 }
 
 func SendQuestion(chatID int64, word *wr.Word) error {
-	var buttons [1][2]wr.InlineKeyboardButton
-	buttons[0][0] = *SetUpButton(word.Stem, "I remember the word")
-	buttons[0][1] = *SetUpButton(word.Stem, "I do not remember word")
+	buttons := [][]telegram.InlineKeyboardButton{{}}
+	buttons[0] = append(buttons[0], *SetUpButton(wr.Answer{Word: word.Stem, Remember: true}, "I remember the word"))
+	buttons[0] = append(buttons[0], *SetUpButton(wr.Answer{Word: word.Stem, Remember: false}, "I do not remember word"))
 
-	keyboard := &wr.InlineKeyboardMarkup{}
+	keyboard := &telegram.InlineKeyboardMarkup{}
 	keyboard.Keyboard = buttons
 
-	reqBody := &wr.SendMessageReqBodyReply{
-		ChatID: chatID,
-		Text:   "Please select one answer",
-		Reply:  *keyboard,
+	reqBody := &telegram.SendMessageReqBodyReply{
+		ChatID:    chatID,
+		Text:      fmt.Sprintf("Please select one answer: *%s*", word.Stem),
+		Reply:     *keyboard,
+		ParseMode: "Markdown",
 	}
 
 	err := SendResponseWithReply(reqBody)
@@ -112,15 +115,82 @@ func SendQuestion(chatID int64, word *wr.Word) error {
 	return nil
 }
 
-func ProcessAnswer(chatID int64, callback *wr.WebhookReqBody) error {
-	fmt.Printf("We get the answer and %d answer is %s", chatID, callback.Callback.Info)
+func ProcessAnswer(chatID int64, callback *telegram.WebhookReqBody) error {
+	answer := wr.Answer{}
+	json.Unmarshal([]byte(callback.Callback.Data), &answer)
+	fmt.Printf("We get the answer and %d answer is %t", chatID, answer.Remember)
+	wordsManager.Answer(strconv.FormatInt(chatID, 10), answer.Remember)
 	return nil
 }
 
-func SetUpButton(word string, comment string) *wr.InlineKeyboardButton {
-	button := &wr.InlineKeyboardButton{}
+func SetUpButton(word wr.Answer, comment string) *telegram.InlineKeyboardButton {
+	button := &telegram.InlineKeyboardButton{}
 	button.Text = comment
-	button.CallbackData = word
+	b, _ := json.Marshal(word)
+	button.CallbackData = string(b)
 
 	return button
+}
+
+func EditMessageReplyMarkup(reqBody *telegram.EditMessageReplyMarkupRequest) error {
+
+	reqBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return err
+	}
+
+	res, err := http.Post(botHost+"/editMessageReplyMarkup", "application/json", bytes.NewBuffer(reqBytes))
+	if err != nil {
+		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		var b []byte
+		res.Body.Read(b)
+		fmt.Println(string(b))
+		return errors.New("unexpected status" + res.Status)
+	}
+
+	return nil
+}
+
+func AnswerCallbackQuery(reqBody *telegram.AnswerCallbackQuery) error {
+
+	reqBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return err
+	}
+
+	res, err := http.Post(botHost+"/answerCallbackQuery", "application/json", bytes.NewBuffer(reqBytes))
+	if err != nil {
+		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		var b []byte
+		res.Body.Read(b)
+		fmt.Println(string(b))
+		return errors.New("unexpected status" + res.Status)
+	}
+
+	return nil
+}
+
+func SetMyCommands(reqBody *telegram.SetMyCommandsRequest) error {
+
+	reqBytes, err := json.Marshal(reqBody)
+	if err != nil {
+		return err
+	}
+
+	res, err := http.Post(botHost+"/setMyCommands", "application/json", bytes.NewBuffer(reqBytes))
+	if err != nil {
+		return err
+	}
+	if res.StatusCode != http.StatusOK {
+		var b []byte
+		res.Body.Read(b)
+		fmt.Println(string(b))
+		return errors.New("unexpected status" + res.Status)
+	}
+
+	return nil
 }

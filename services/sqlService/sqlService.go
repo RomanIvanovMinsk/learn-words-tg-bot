@@ -14,9 +14,10 @@ import (
 var db *sqlx.DB
 
 type DbWord struct {
-	Word string `db:"Word"`
-	Stem string `db:"Stem"`
-	Lang string `db:"Lang"`
+	Word  string `db:"Word"`
+	Stem  string `db:"Stem"`
+	Lang  string `db:"Lang"`
+	Usage string `db:"Usage"`
 }
 
 func OpenConnection(url *url.URL) error {
@@ -143,19 +144,51 @@ func Queue() error {
 	return nil
 }
 
-//func GetIntervalWords(userId string) (DbWord,error) {
-//	ctx := context.Background()
-//	err := db.PingContext(ctx)
-//	if err != nil {
-//		log.Println(err.Error())
-//		return (nil,err)
-//	}
-//	preparedUserId := getUserId(userId)
-//
-//	result, err := db.Queryx(`exec dbo.GetIntervalWords @p1`, preparedUserId)
-//	if err != nil {
-//		log.Println(err.Error())
-//		return err
-//	}
-//	return nil
-//}
+func GetIntervalWords(userId string) (*models.Word, error) {
+	ctx := context.Background()
+	err := db.PingContext(ctx)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	preparedUserId := getUserId(userId)
+
+	words := make([]DbWord, 0)
+	tsql := fmt.Sprintf("exec dbo.GetIntervalWords '%s'", preparedUserId)
+	err = db.Select(&words, tsql, preparedUserId)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+
+	word := models.Word{
+		Word:   words[0].Word,
+		Stem:   words[0].Stem,
+		Lang:   words[0].Lang,
+		Usages: make([]models.Usage, 0, len(words)),
+	}
+
+	for _, v := range words {
+		word.Usages = append(word.Usages, models.Usage{Usage: v.Usage})
+	}
+
+	return &word, nil
+}
+
+func Answer(userId string, remember bool) error {
+	ctx := context.Background()
+	err := db.PingContext(ctx)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+	preparedUserId := getUserId(userId)
+
+	_, err = db.Exec("exec dbo.Answer @p1, @p2", preparedUserId, remember)
+	if err != nil {
+		log.Println(err.Error())
+		return err
+	}
+
+	return nil
+}

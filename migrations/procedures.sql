@@ -147,6 +147,7 @@ as
 begin
 
     begin transaction
+        --declare @UserId as uniqueidentifier  = '6BBDB848-F5A4-4365-B884-2A6E1A19DE28'
         declare @ToReturn table
                           (
                               Id        uniqueidentifier,
@@ -171,10 +172,10 @@ begin
             begin
                 update Queue
                 Set IsWaiting = 1
-                where wordId in (select WordId from @ToReturn)
+                where Queue.WordId in (select T.Id from @ToReturn as T)
             end
 
-        select * from @ToReturn
+        select Word, Stem, Lang from @ToReturn
     commit transaction
 end
 go
@@ -224,7 +225,8 @@ begin
 
         update Queue
         set Stage = IIF(@IsRemember = 1, Stage + 1, Stage),
-            Due   = dbo.GetNextDueDate(IIF(@IsRemember = 1, Stage + 1, Stage))
+            Due   = dbo.GetNextDueDate(IIF(@IsRemember = 1, Stage + 1, Stage)),
+            IsWaiting = 0
         output Inserted.Stage into @UpdatedWord
         where WordId = @CurrentWord;
 

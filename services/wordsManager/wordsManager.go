@@ -21,3 +21,21 @@ func AddWordsList(telegramUserId string, words []models.Word) error {
 
 	return nil
 }
+
+func GetIntervalWords(telegramUserId string) (*models.Word, error) {
+	userId, err := sqlService.GetUserIdByTelegramId(telegramUserId)
+	if err != nil {
+		return nil, err
+	}
+
+	return sqlService.GetIntervalWords(userId)
+}
+
+func Answer(telegramUserId string, remember bool) error {
+	userId, err := sqlService.GetUserIdByTelegramId(telegramUserId)
+	if err != nil {
+		return err
+	}
+
+	return sqlService.Answer(userId, remember)
+}
