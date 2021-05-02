@@ -21,3 +21,13 @@ type Answer struct {
 	Word     string
 	Remember bool
 }
+
+type Settings struct {
+	NumberOfShards int `json:"number_of_shards"`
+	Index          struct {
+		analysis Analysis
+	} `json:"index"`
+}
+
+type Analysis struct {
+}

@@ -1,7 +1,9 @@
 package elasticService
 
 import (
-	"bytes"     // for converting JSON to bytes array
+	model "WordsBot/models"
+	"bytes" // for converting JSON to bytes array
+	"encoding/json"
 	"fmt"       // for printing to console
 	"io/ioutil" // for reading IO of JSON file
 	"log"       // for logging errors
@@ -11,15 +13,54 @@ import (
 )
 
 func ParseJsonAndSendItInElastick() {
-
 	// Allow for custom formatting of log output
 	log.SetFlags(0)
+	//DropOldIndex()
+	SetUpIndex()
+	UploadDataToIndex()
 
+}
+
+// func DropOldIndex(){
+
+// }
+
+func SetUpIndex() {
+	settings := &model.Settings{}
+	settings.NumberOfShards = 1
+
+	req := SetUpRequestForCreateIndex(settings)
+	InvokeReqReadResp(req)
+}
+
+func UploadDataToIndex() {
 	file := OpenFile()
 	defer file.Close()
 	data := ReadFile(file)
 	req := setUpRequestForFile(data)
 	InvokeReqReadResp(req)
+}
+
+func SetUpRequestForCreateIndex(payload interface{}) *http.Request {
+	reqBytes, err := json.Marshal(payload)
+
+	//map from one json to another
+	// mapReqBytes
+
+	// Make HTTP request using "PUT" or "POST" verb
+	req, err := http.NewRequest("PUT", "http://localhost:9200/dict", bytes.NewBuffer(reqBytes))
+	// ES 6.0> requires Content-Type header to avoid 406 HTTP error:
+	// "error":"Content-Type header [] is not supported","status":406}
+	req.Header.Set("Content-Type", "application/x-ndjson")
+
+	// Print out the HTTP request and check for errors
+	if err != nil {
+		log.Fatalf("http.NewRequest ERROR:", err)
+	} else {
+		fmt.Println("HTTP Request:", req)
+	}
+
+	return req
 }
 
 func setUpRequestForFile(byteSlice []byte) *http.Request {
