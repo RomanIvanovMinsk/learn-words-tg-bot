@@ -1,13 +1,13 @@
 {
     "SQL": {
-        "host": "localhost:1533",
+        "host": ".",
         "database": "WordsBot",
         "user": "sa",
-        "password": "Pass@word"
+        "password": "6Abpbrf123!!"
     },
     "Bot":{
-        "Token" : "1769321616:AAED6eF_4VqvaCkGztZ8B9c5EO_ijlbzeAI",
+        "Token" : "1769321616:AAF4HMUmOYfEMufboZjI2bRZvTjOwhie7iQ",
         "Host" : "https://api.telegram.org"
     },
-    "Host" : "https://3af92a2330bd.ngrok.io"
+    "Host" : "https://aa2c57dc8ed4.ngrok.io"
 }
