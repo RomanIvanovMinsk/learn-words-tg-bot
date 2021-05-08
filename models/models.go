@@ -22,6 +22,10 @@ type Answer struct {
 	Remember bool
 }
 
+type SettingsModel struct {
+	Settings Settings `json:"settings"`
+}
+
 type Settings struct {
 	NumberOfShards int `json:"number_of_shards"`
 	Index          struct {
@@ -30,4 +34,19 @@ type Settings struct {
 }
 
 type Analysis struct {
+}
+
+type IndexedModel struct {
+	Index IndexInner `json:"index"`
+}
+
+type IndexInner struct {
+	Index string `json:"_index" `
+	Type  string `json:"_type"`
+	Id    int    `json:"_id"`
+}
+
+type DictionaryWord struct {
+	Key   string `json:"key"`
+	Value string `json:value`
 }

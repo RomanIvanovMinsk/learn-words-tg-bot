@@ -10,6 +10,7 @@ import (
 
 	clienthelper "WordsBot/clienthelper"
 	wr "WordsBot/models"
+	elastic "WordsBot/services/elasticService"
 )
 
 func GetImport(w http.ResponseWriter, r *http.Request) {
@@ -34,11 +35,16 @@ func importWordsList(w http.ResponseWriter, req *http.Request) {
 	clienthelper.UploadList(body, w, req)
 }
 
+func setUpSearchIndex(w http.ResponseWriter, req *http.Request) {
+	elastic.ParseJsonAndSendItInElastick()
+}
+
 func NewRouter() http.Handler {
 	r := chi.NewRouter()
 
 	r.Get("/", GetImport)
 	r.Post("/list", importWordsList)
+	r.Get("/elastic", setUpSearchIndex)
 
 	return r
 }

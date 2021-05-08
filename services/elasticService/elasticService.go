@@ -16,7 +16,7 @@ func ParseJsonAndSendItInElastick() {
 	// Allow for custom formatting of log output
 	log.SetFlags(0)
 	//DropOldIndex()
-	SetUpIndex()
+	//SetUpIndex()
 	UploadDataToIndex()
 
 }
@@ -26,8 +26,8 @@ func ParseJsonAndSendItInElastick() {
 // }
 
 func SetUpIndex() {
-	settings := &model.Settings{}
-	settings.NumberOfShards = 1
+	settings := &model.SettingsModel{}
+	settings.Settings.NumberOfShards = 1
 
 	req := SetUpRequestForCreateIndex(settings)
 	InvokeReqReadResp(req)
@@ -64,8 +64,34 @@ func SetUpRequestForCreateIndex(payload interface{}) *http.Request {
 }
 
 func setUpRequestForFile(byteSlice []byte) *http.Request {
+	var result map[string]string
+	json.Unmarshal([]byte(byteSlice), &result)
+	indexedWords := make([]byte, 1024)
+	i := 0
+	for key, value := range result {
+		index := &model.IndexedModel{}
+		index.Index.Id = i
+		index.Index.Index = "dict"
+		result, err := json.Marshal(index)
+		if err != nil {
+			continue
+		}
+
+		word := &model.DictionaryWord{}
+		word.Key = key
+		word.Value = value
+
+		reqBodyBytes := new(bytes.Buffer)
+		json.NewEncoder(reqBodyBytes).Encode(word)
+
+		indexedWords = append(indexedWords, result...)
+		//indexedWords = append(indexedWords, []byte("\n")...)
+		indexedWords = append(indexedWords, reqBodyBytes.Bytes()...)
+		//indexedWords = append(indexedWords, []byte("\n")...)
+	}
+
 	// Make HTTP request using "PUT" or "POST" verb
-	req, err := http.NewRequest("PUT", "http://localhost:9200/_bulk?pretty=true", bytes.NewBuffer(byteSlice))
+	req, err := http.NewRequest("PUT", "http://localhost:9200/_bulk?pretty=true", bytes.NewBuffer(indexedWords))
 
 	// ES 6.0> requires Content-Type header to avoid 406 HTTP error:
 	// "error":"Content-Type header [] is not supported","status":406}
@@ -97,7 +123,7 @@ func ReadFile(file *os.File) []byte {
 
 func OpenFile() *os.File {
 	// Use the OS package to load the JSON file
-	file, err := os.Open("docs.json")
+	file, err := os.Open("./dict/dictionary.json")
 	if err != nil {
 		log.Fatalf("os.Open() ERROR:", err)
 	}
