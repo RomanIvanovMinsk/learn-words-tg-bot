@@ -1,5 +1,5 @@
-FROM golang:latest AS builder
-
+FROM golang:alpine AS builder
+RUN apk --no-cache add ca-certificates
 #RUN apk add --no-cache ca-certificates git
 
 WORKDIR /src
@@ -17,9 +17,10 @@ RUN CGO_ENABLED=0 go build \
 ADD config.json /app/
 
 # Final stage: the running container.
-FROM golang:latest  AS final
+FROM scratch  AS final
 
 # Import the compiled executable from the first stage.
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /app /app
 
 # Expose both 443 and 80 to our application
