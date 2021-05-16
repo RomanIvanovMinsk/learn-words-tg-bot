@@ -12,6 +12,7 @@ services:
       - WordsBot:/var/opt/mssql
     mem_limit: 4G
   bot:
+    image: n1009601/words-bot:latest
     ports:
       - 8821:80
     environment:

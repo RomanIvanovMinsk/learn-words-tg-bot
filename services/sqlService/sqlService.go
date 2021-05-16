@@ -31,7 +31,7 @@ func OpenConnection(url *url.URL) error {
 	ctx := context.Background()
 	err = db.PingContext(ctx)
 	if err != nil {
-		log.Println(err.Error())
+		log.Fatal(err)
 		return err
 	}
 	fmt.Printf("Db Connected!\n")

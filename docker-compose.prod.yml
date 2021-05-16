@@ -1,0 +1,9 @@
+version: '3.9'
+
+services:
+  bot:
+    image: n1009601/words-bot:latest
+    environment:
+      - BOT_TOKEN=
+      - HOST=
+
