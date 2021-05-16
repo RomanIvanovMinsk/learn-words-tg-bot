@@ -62,7 +62,7 @@ func main() {
 	router.Mount("/api/", api.GetApiRouter())
 
 	server := http.Server{
-		Addr:    ":8821",
+		Addr:    ":80",
 		Handler: router,
 	}
 

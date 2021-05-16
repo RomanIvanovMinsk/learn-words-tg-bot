@@ -1,0 +1,23 @@
+version: '3.9'
+
+services:
+  sql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    ports:
+      - 1534:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Pass@word
+    volumes:
+      - WordsBot:/var/opt/mssql
+    mem_limit: 4G
+  bot:
+    image: n1009601/words-bot:latest
+    ports:
+      - 8821:80
+    environment:
+      - SQL_HOST=sql
+    restart: unless-stopped
+volumes:
+  WordsBot:
+
