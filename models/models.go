@@ -5,6 +5,7 @@ type Usage struct {
 }
 
 type Word struct {
+	Id     string
 	Word   string
 	Stem   string
 	Lang   string
@@ -18,6 +19,12 @@ type WordsList struct {
 }
 
 type Answer struct {
+	Command  string
 	Word     string
 	Remember bool
+}
+
+type GetUsages struct {
+	Id     string
+	Offset int
 }

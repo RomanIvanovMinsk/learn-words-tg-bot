@@ -1,6 +1,7 @@
 package wordsImport
 
 import (
+	"WordsBot/services/sqlService"
 	"WordsBot/services/wordsManager"
 	"fmt"
 	"net/http"
@@ -32,6 +33,7 @@ func importWordsList(w http.ResponseWriter, req *http.Request) {
 	}
 
 	clienthelper.UploadList(body, w, req)
+	sqlService.Queue()
 }
 
 func NewRouter() http.Handler {
