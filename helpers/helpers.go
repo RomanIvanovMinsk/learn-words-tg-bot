@@ -6,6 +6,7 @@ import (
 	"WordsBot/services/wordsManager"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -91,6 +92,13 @@ func SelectAction(body *telegram.WebhookReqBody) {
 			json.Unmarshal([]byte(body.Callback.Data), &answer)
 			usages, _ := wordsManager.GetUsages(strconv.FormatInt(chatId, 10), answer.Id, answer.Offset)
 			fmt.Printf("%s", usages)
+			err = action.SendResponse(&telegram.SendMessageReqBody{
+				ChatID: chatId,
+				Text:   strings.Join(usages, "\n\n"),
+			})
+			if err != nil {
+				log.Fatal(err)
+			}
 		} else {
 			fmt.Printf("We get the answer and %d answer is %t", chatId, answer.Remember)
 			wordsManager.Answer(strconv.FormatInt(chatId, 10), answer.Remember)
