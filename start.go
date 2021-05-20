@@ -26,7 +26,6 @@ import (
 
 var Config *config.AppConfig
 
-// Finally, the main function starts our server on port 3000
 func main() {
 
 	Config = &config.AppConfig{}
@@ -62,7 +61,7 @@ func main() {
 	router.Mount("/api/", api.GetApiRouter())
 
 	server := http.Server{
-		Addr:    ":80",
+		Addr:    ":" + Config.Port,
 		Handler: router,
 	}
 

@@ -4,6 +4,7 @@ type AppConfig struct {
 	Bot  Bot       `json:"Bot" cfg:"Bot"`
 	Host string    `json:"Host" cfg:"Host"`
 	Sql  SqlConfig `json:"Sql" cfg:"Sql"`
+	Port string    `json:"Port" cfg:"Port"`
 }
 
 type Bot struct {
