@@ -45,6 +45,7 @@ func main() {
 			{Command: "/start", Description: "create user profile"},
 			{Command: "/myid", Description: "return user id"},
 			{Command: "/givemetheword", Description: "get next word"},
+			{Command: "/import_utility", Description: "Download import utility"},
 		},
 	})
 	if err != nil {

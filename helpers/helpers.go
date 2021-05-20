@@ -69,6 +69,15 @@ func SelectAction(body *telegram.WebhookReqBody) {
 		}
 	}
 
+	if command == "/import_utility" {
+		chatId := body.Message.Chat.ID
+		reqBody := &telegram.SendMessageReqBody{
+			ChatID: chatId,
+			Text:   fmt.Sprintf("Here the link\n%s", "https://github.com/xtergs/WordsImport/releases"),
+		}
+		action.SendResponse(reqBody)
+	}
+
 	if body.Callback.Data != "" {
 		fmt.Println("Start process user answer")
 		chatId := body.Callback.Message.Chat.ID
