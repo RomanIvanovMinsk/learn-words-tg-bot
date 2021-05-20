@@ -39,3 +39,12 @@ func Answer(telegramUserId string, remember bool) error {
 
 	return sqlService.Answer(userId, remember)
 }
+
+func GetUsages(telegramUserId string, word string, offset int) ([]string, error) {
+	userId, err := sqlService.GetUserIdByTelegramId(telegramUserId)
+	if err != nil {
+		return nil, err
+	}
+
+	return sqlService.GetUsages(userId, word, offset)
+}

@@ -14,10 +14,11 @@ import (
 var db *sqlx.DB
 
 type DbWord struct {
-	Word  string `db:"Word"`
-	Stem  string `db:"Stem"`
-	Lang  string `db:"Lang"`
-	Usage string `db:"Usage"`
+	Id    mssql.UniqueIdentifier `db:"Id"`
+	Word  string                 `db:"Word"`
+	Stem  string                 `db:"Stem"`
+	Lang  string                 `db:"Lang"`
+	Usage string                 `db:"Usage"`
 }
 
 func OpenConnection(url *url.URL) error {
@@ -162,6 +163,7 @@ func GetIntervalWords(userId string) (*models.Word, error) {
 	}
 
 	word := models.Word{
+		Id:     words[0].Id.String(),
 		Word:   words[0].Word,
 		Stem:   words[0].Stem,
 		Lang:   words[0].Lang,
@@ -191,4 +193,27 @@ func Answer(userId string, remember bool) error {
 	}
 
 	return nil
+}
+
+func GetUsages(userId string, word string, offset int) ([]string, error) {
+	ctx := context.Background()
+	err := db.PingContext(ctx)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+	//preparedUserId := getUserId(userId)
+
+	usages := make([]string, 0)
+
+	wordId := mssql.UniqueIdentifier{}
+	wordId.Scan(word)
+
+	err = db.Select(&usages, "exec dbo.GetWordUsages @p1, @p2", wordId, offset)
+	if err != nil {
+		log.Println(err.Error())
+		return nil, err
+	}
+
+	return usages, nil
 }

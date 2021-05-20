@@ -71,26 +71,39 @@ func SelectAction(body *telegram.WebhookReqBody) {
 
 	if body.Callback.Data != "" {
 		fmt.Println("Start process user answer")
-		if err := action.ProcessAnswer(body.Callback.Message.Chat.ID, body); err != nil {
-			fmt.Println("error in sending reply:", err)
-			return
-		}
-		err := action.AnswerCallbackQuery(&telegram.AnswerCallbackQuery{CallbackQueryId: body.Callback.ID})
+		chatId := body.Callback.Message.Chat.ID
+		answer, err := action.ProcessAnswer(chatId, body)
 		if err != nil {
 			fmt.Println("error in sending reply:", err)
 			return
 		}
+		if answer.Command != "Answer" {
+			answer := &wr.GetUsages{}
+			json.Unmarshal([]byte(body.Callback.Data), &answer)
+			usages, _ := wordsManager.GetUsages(strconv.FormatInt(chatId, 10), answer.Id, answer.Offset)
+			fmt.Printf("%s", usages)
+		} else {
+			fmt.Printf("We get the answer and %d answer is %t", chatId, answer.Remember)
+			wordsManager.Answer(strconv.FormatInt(chatId, 10), answer.Remember)
 
-		err = action.EditMessageReplyMarkup(&telegram.EditMessageReplyMarkupRequest{
-			ChatId:      body.Callback.Message.Chat.ID,
-			MessageId:   body.Callback.Message.MessageId,
-			ReplyMarkup: telegram.InlineKeyboardMarkup{Keyboard: [][]telegram.InlineKeyboardButton{}},
-		})
+			err = action.AnswerCallbackQuery(&telegram.AnswerCallbackQuery{CallbackQueryId: body.Callback.ID})
+			if err != nil {
+				fmt.Println("error in sending reply:", err)
+				return
+			}
 
-		if err != nil {
-			fmt.Println("error in sending reply:", err)
-			return
+			err = action.EditMessageReplyMarkup(&telegram.EditMessageReplyMarkupRequest{
+				ChatId:      body.Callback.Message.Chat.ID,
+				MessageId:   body.Callback.Message.MessageId,
+				ReplyMarkup: telegram.InlineKeyboardMarkup{Keyboard: [][]telegram.InlineKeyboardButton{}},
+			})
+
+			if err != nil {
+				fmt.Println("error in sending reply:", err)
+				return
+			}
 		}
+
 	}
 
 }

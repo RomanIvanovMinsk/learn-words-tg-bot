@@ -3,7 +3,6 @@ package actions
 import (
 	wr "WordsBot/models"
 	"WordsBot/models/telegram"
-	"WordsBot/services/wordsManager"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -65,9 +64,7 @@ func SendResponseWithReply(reqBody *telegram.SendMessageReqBodyReply) error {
 }
 
 func SendQuestion(chatID int64, word *wr.Word) error {
-	buttons := [][]telegram.InlineKeyboardButton{{}}
-	buttons[0] = append(buttons[0], *SetUpButton(wr.Answer{Word: word.Stem, Remember: true}, "I remember the word"))
-	buttons[0] = append(buttons[0], *SetUpButton(wr.Answer{Word: word.Stem, Remember: false}, "I do not remember word"))
+	buttons := ButtonsForKeyboard(word)
 
 	keyboard := &telegram.InlineKeyboardMarkup{}
 	keyboard.Keyboard = buttons
@@ -88,15 +85,23 @@ func SendQuestion(chatID int64, word *wr.Word) error {
 	return nil
 }
 
-func ProcessAnswer(chatID int64, callback *telegram.WebhookReqBody) error {
-	answer := wr.Answer{}
-	json.Unmarshal([]byte(callback.Callback.Data), &answer)
-	fmt.Printf("We get the answer and %d answer is %t", chatID, answer.Remember)
-	wordsManager.Answer(strconv.FormatInt(chatID, 10), answer.Remember)
-	return nil
+func ButtonsForKeyboard(word *wr.Word) [][]telegram.InlineKeyboardButton {
+	buttons := [][]telegram.InlineKeyboardButton{{}}
+	buttons[0] = append(buttons[0], *SetUpButton(wr.Answer{Command: "Answer", Word: word.Stem, Remember: true}, "I remember the word"))
+	buttons[0] = append(buttons[0], *SetUpButton(wr.Answer{Command: "Answer", Word: word.Stem, Remember: false}, "I do not remember word"))
+	buttons[0] = append(buttons[0], *SetUpButton(wr.GetUsages{
+		Id:     word.Id,
+		Offset: 0}, "Show usages"))
+	return buttons
 }
 
-func SetUpButton(word wr.Answer, comment string) *telegram.InlineKeyboardButton {
+func ProcessAnswer(chatID int64, callback *telegram.WebhookReqBody) (wr.Answer, error) {
+	answer := wr.Answer{}
+	json.Unmarshal([]byte(callback.Callback.Data), &answer)
+	return answer, nil
+}
+
+func SetUpButton(word interface{}, comment string) *telegram.InlineKeyboardButton {
 	button := &telegram.InlineKeyboardButton{}
 	button.Text = comment
 	b, _ := json.Marshal(word)

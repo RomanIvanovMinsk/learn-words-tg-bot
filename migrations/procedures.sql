@@ -103,27 +103,27 @@ create or
 alter procedure QueueWords
 as
 begin
---     declare @WordsInQueue as int;
+    --     declare @WordsInQueue as int;
 --     select @WordsInQueue = WordsInQueue from Settings;
 
     With C0 as (
         select UserId, (max(WordsInQueue) - Count(Q.WordId)) as toAdd
         from Queue as Q
                  right join dbo.Words on Q.WordId = Words.Id
-        cross join Settings
+                 cross join Settings
         group by UserId
     ),
          C1 as (
              select distinct WordId,
-                    toAdd,
-                    count(U.WordId) over (partition by WordId) as cnt,
-                    W.UserId
+                             toAdd,
+                             count(U.WordId) over (partition by WordId) as cnt,
+                             W.UserId
              from Words as W
                       inner join C0 on W.UserId = C0.UserId
                       left join Usage U on W.Id = U.WordId
 
-             where WordId not in (select WordId from Queue) and
-                   W.Learned is null
+             where WordId not in (select WordId from Queue)
+               and W.Learned is null
          ),
          C2 as (
              select *,
@@ -175,7 +175,7 @@ begin
                 where Queue.WordId in (select T.Id from @ToReturn as T)
             end
 
-        select Word, Stem, Lang from @ToReturn
+        select Id, Word, Stem, Lang from @ToReturn
     commit transaction
 end
 go
@@ -224,8 +224,8 @@ begin
                              )
 
         update Queue
-        set Stage = IIF(@IsRemember = 1, Stage + 1, Stage),
-            Due   = dbo.GetNextDueDate(IIF(@IsRemember = 1, Stage + 1, Stage)),
+        set Stage     = IIF(@IsRemember = 1, Stage + 1, Stage),
+            Due       = dbo.GetNextDueDate(IIF(@IsRemember = 1, Stage + 1, Stage)),
             IsWaiting = 0
         output Inserted.Stage into @UpdatedWord
         where WordId = @CurrentWord;
@@ -240,4 +240,17 @@ begin
                 set Learned = SYSUTCDATETIME();
             end
     commit transaction
+end
+go
+create or
+alter procedure GetWordUsages @WordId uniqueidentifier,
+                              @Offset int = 0,
+                              @Count int = 5
+as
+begin
+    select Text
+    from dbo.Usage
+    where WordId = @WordId
+    order by Id
+    offset @Offset rows fetch next @Count rows only;
 end
