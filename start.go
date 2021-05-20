@@ -56,8 +56,8 @@ func main() {
 	router.Use(render.SetContentType(render.ContentTypeJSON),
 		middleware.DefaultLogger,
 		middleware.RequestID,
-		middleware.Recoverer,
 		middleware.CleanPath)
+	router.Use(middleware.Recoverer)
 
 	router.Mount("/api/", api.GetApiRouter())
 
