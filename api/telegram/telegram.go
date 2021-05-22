@@ -2,10 +2,10 @@ package telegram
 
 import (
 	"WordsBot/models/telegram"
+	"WordsBot/telegram/webhook"
 	"fmt"
 	"net/http"
 
-	"WordsBot/helpers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
@@ -24,7 +24,7 @@ func PostWebhook(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(body.Message.Text)
 
-	helpers.SelectAction(body)
+	webhook.HandleWebhook(body)
 }
 
 func NewRouter() http.Handler {
