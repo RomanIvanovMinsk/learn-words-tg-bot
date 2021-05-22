@@ -1,11 +1,14 @@
 package main
 
 import (
-	"WordsBot/actions"
 	"WordsBot/api"
 	"WordsBot/config"
 	"WordsBot/models/telegram"
 	"WordsBot/services/sqlService"
+	telegramApi "WordsBot/telegram/api"
+	"WordsBot/telegram/commands/givemetheword"
+	"WordsBot/telegram/commands/import_utility"
+	"WordsBot/telegram/commands/myid"
 	"context"
 	"fmt"
 	"github.com/go-chi/chi/v5/middleware"
@@ -39,13 +42,13 @@ func main() {
 	initDb(Config.Sql)
 
 	configureWebhooks(Config)
-	actions.Configure(config.GetBotHost(Config))
-	err = actions.SetMyCommands(&telegram.SetMyCommandsRequest{
+	telegramApi.Configure(config.GetBotHost(Config))
+	err = telegramApi.SetMyCommands(&telegram.SetMyCommandsRequest{
 		Commands: []telegram.BotCommand{
-			{Command: "/start", Description: "create user profile"},
-			{Command: "/myid", Description: "return user id"},
-			{Command: "/givemetheword", Description: "get next word"},
-			{Command: "/import_utility", Description: "Download import utility"},
+			//{Command: "/start", Description: "create user profile"},
+			{Command: myid.Name(), Description: myid.Description()},
+			{Command: givemetheword.Name(), Description: givemetheword.Description()},
+			{Command: import_utility.Name(), Description: import_utility.Description()},
 		},
 	})
 	if err != nil {
